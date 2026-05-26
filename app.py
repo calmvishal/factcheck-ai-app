@@ -47,12 +47,10 @@ if uploaded_file:
     result = response.json()
 
     if "choices" in result:
-    claims = result["choices"][0]["message"]["content"]
+        claims = result["choices"][0]["message"]["content"]
     else:
-
-    st.error(result)
-
-    st.stop()
+        st.error(result)
+        st.stop()
 
     st.subheader("Extracted Claims")
     st.write(claims)
