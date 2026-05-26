@@ -4,8 +4,11 @@ import requests
 from duckduckgo_search import DDGS
 
 st.title("AI Fact Checker & Verification Tool")
+
 st.markdown(
-    "Upload a PDF document to automatically extract factual claims and verify them using live web data.")
+    "Upload a PDF document to automatically extract factual claims and verify them using live web data."
+)
+
 API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 uploaded_file = st.file_uploader("Upload PDF", type="pdf")
@@ -13,20 +16,27 @@ uploaded_file = st.file_uploader("Upload PDF", type="pdf")
 if uploaded_file:
 
     pdf_data = uploaded_file.read()
+
     doc = fitz.open(stream=pdf_data, filetype="pdf")
+
     text = ""
+
     for page in doc:
         text += page.get_text()
 
     st.subheader("Extracted Text")
+
     st.write(text[:2000])
 
     prompt = f"""
     Extract important factual claims, statistics, dates, and numerical statements from this text.
+
     Text:
     {text[:3000]}
+
     Return only bullet points.
     """
+
     response = requests.post(
         url="https://openrouter.ai/api/v1/chat/completions",
         headers={
@@ -47,12 +57,17 @@ if uploaded_file:
     result = response.json()
 
     if "choices" in result:
+
         claims = result["choices"][0]["message"]["content"]
+
     else:
+
         st.error(result)
+
         st.stop()
 
     st.subheader("Extracted Claims")
+
     st.write(claims)
 
     st.subheader("Fact Check Results")
@@ -76,13 +91,13 @@ if uploaded_file:
 
                 snippet = results[0]["body"]
 
-                st.success("Related information found")
+                st.success("Related web information found")
 
                 st.caption(snippet)
 
             else:
 
-                st.warning("No strong evidence found")
+                st.warning("No matching web evidence found")
 
         except Exception as e:
 
