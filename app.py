@@ -45,7 +45,7 @@ if uploaded_file:
     """
 
     response = client.chat.completions.create(
-        model="openai/gpt-3.5-turbo",
+        model="openai/gpt-4o-mini",
         messages=[
             {
                 "role": "user",
@@ -95,7 +95,7 @@ if uploaded_file:
                 """
 
                 verification = client.chat.completions.create(
-                    model="openai/gpt-3.5-turbo",
+                    model="openai/gpt-4o-mini",
                     messages=[
                         {
                             "role": "user",
