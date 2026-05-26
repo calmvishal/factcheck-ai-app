@@ -5,7 +5,7 @@ from duckduckgo_search import DDGS
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key="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",
+    api_key=st.secrets["OPENROUTER_API_KEY"],
 
     default_headers={
         "HTTP-Referer": "http://localhost:8501",
