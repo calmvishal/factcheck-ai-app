@@ -89,35 +89,66 @@ if uploaded_file:
 
             if results:
 
-                snippet = results[0]["body"]
+    snippet = results[0]["body"]
 
-                claim_words = claim.lower().split()
+    verify_prompt = f"""
+    Claim: {claim}
 
-                match_count = 0
+    Web Evidence:
+    {snippet}
 
-                for word in claim_words[:5]:
+    Tell whether this claim is:
+    Verified
+    Inaccurate
+    False
 
-                    if word in snippet.lower():
+    Give a short reason in one line.
+    """
 
-                        match_count += 1
+    verify_response = requests.post(
+        url="https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "model": "openai/gpt-4o-mini",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": verify_prompt
+                }
+            ]
+        }
+    )
 
-                if match_count >= 3:
+    verify_result = verify_response.json()
 
-                    st.success("Verified")
+    if "choices" in verify_result:
 
-                elif match_count >= 1:
+        verdict = verify_result["choices"][0]["message"]["content"]
 
-                    st.warning("Possibly Inaccurate")
+        if "Verified" in verdict:
 
-                else:
+            st.success(verdict)
 
-                    st.error("False or No Evidence Found")
+        elif "Inaccurate" in verdict:
 
-                st.caption(snippet)
+            st.warning(verdict)
 
-            else:
+        else:
 
-                st.error("No Evidence Found")
+            st.error(verdict)
+
+        st.caption(snippet)
+
+    else:
+
+        st.error("Verification failed")
+
+else:
+
+    st.error("No Evidence Found")
 
         except Exception as e:
 
