@@ -1,7 +1,6 @@
 import streamlit as st
 import fitz
 import requests
-from duckduckgo_search import DDGS
 
 st.markdown(
     "<h1 style='color:#1565C0;'>AI Fact Checker & Verification Tool</h1>",
@@ -9,7 +8,7 @@ st.markdown(
 )
 
 st.markdown(
-    "Upload a PDF document to automatically extract factual claims and verify them using live web data."
+    "Upload a PDF document to automatically extract factual claims and verify them using AI."
 )
 
 API_KEY = st.secrets["OPENROUTER_API_KEY"]
@@ -75,8 +74,6 @@ if uploaded_file:
 
     st.subheader("Fact Check Results")
 
-    search = DDGS()
-
     claim_list = claims.split("\n")
 
     for claim in claim_list:
@@ -86,83 +83,54 @@ if uploaded_file:
 
         st.write("Checking:", claim)
 
-        try:
+        verify_prompt = f"""
+        Verify this claim and tell whether it is:
 
-            search_query = claim.replace("-", "").strip()
+        - Verified
+        - Inaccurate
+        - False
 
-            results = list(search.text(search_query, max_results=5))
+        Claim:
+        {claim}
 
-            if results and len(results) > 0:
+        Give a short reason in one line.
+        """
 
-                snippet = ""
-
-                for r in results:
-
-                    if "title" in r:
-
-                        snippet += r["title"] + " "
-
-                    if "body" in r:
-
-                        snippet += r["body"] + " "
-
-                verify_prompt = f"""
-                Claim: {claim}
-
-                Web Evidence:
-                {snippet}
-
-                Tell whether this claim is:
-                Verified
-                Inaccurate
-                False
-
-                Give a short reason in one line.
-                """
-
-                verify_response = requests.post(
-                    url="https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "openai/gpt-4o-mini",
-                        "messages": [
-                            {
-                                "role": "user",
-                                "content": verify_prompt
-                            }
-                        ]
+        verify_response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "openai/gpt-4o-mini",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": verify_prompt
                     }
-                )
+                ]
+            }
+        )
 
-                verify_result = verify_response.json()
+        verify_result = verify_response.json()
 
-                if "choices" in verify_result:
+        if "choices" in verify_result:
 
-                    verdict = verify_result["choices"][0]["message"]["content"]
+            verdict = verify_result["choices"][0]["message"]["content"]
 
-                    if "Verified" in verdict:
+            if "Verified" in verdict:
 
-                        st.success(verdict)
+                st.success(verdict)
 
-                    elif "Inaccurate" in verdict:
+            elif "Inaccurate" in verdict:
 
-                        st.warning(verdict)
-
-                    else:
-
-                        st.error(verdict)
-
-                else:
-
-                    st.error("Verification failed")
+                st.warning(verdict)
 
             else:
 
-                st.error("No Evidence Found")
+                st.error(verdict)
 
-        except Exception as e:
+        else:
 
-            st.error(str(e))
+            st.error("Verification failed")
