@@ -56,9 +56,12 @@ if uploaded_file:
             continue
         st.write("Checking:", claim)
         try:
-            results = list(search.text(claim, max_results=1))
-            if results:
-                snippet = results[0]["body"]
+            results = list(search.text(claim[:80], max_results=3))
+            if results and len(results) > 0:
+                snippet = ""
+                for r in results:
+                    if "body" in r:
+                        snippet += r["body"] + " "
                 verify_prompt = f"""
                 Claim: {claim}
                 Web Evidence:
