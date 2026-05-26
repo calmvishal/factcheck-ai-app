@@ -91,13 +91,33 @@ if uploaded_file:
 
                 snippet = results[0]["body"]
 
-                st.success("Related web information found")
+                claim_words = claim.lower().split()
+
+                match_count = 0
+
+                for word in claim_words[:5]:
+
+                    if word in snippet.lower():
+
+                        match_count += 1
+
+                if match_count >= 3:
+
+                    st.success("Verified")
+
+                elif match_count >= 1:
+
+                    st.warning("Possibly Inaccurate")
+
+                else:
+
+                    st.error("False or No Evidence Found")
 
                 st.caption(snippet)
 
             else:
 
-                st.warning("No matching web evidence found")
+                st.error("No Evidence Found")
 
         except Exception as e:
 
